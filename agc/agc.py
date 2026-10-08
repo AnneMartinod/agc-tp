@@ -95,7 +95,7 @@ def read_fasta(amplicon_file: Path, minseqlen: int) -> Iterator[str]:
                 sequence += line
         if len(sequence) >= minseqlen:
             yield sequence
-    pass
+
 
 
 def dereplication_fulllength(amplicon_file: Path, minseqlen: int, mincount: int) -> Iterator[List]:
@@ -110,7 +110,7 @@ def dereplication_fulllength(amplicon_file: Path, minseqlen: int, mincount: int)
     for sequence, count in counts.most_common():
         if count >= mincount:
             yield [sequence, count]
-    pass
+
 
 def get_identity(alignment_list: List[str]) -> float:
     """Compute the identity rate between two sequences
@@ -156,7 +156,10 @@ def write_OTU(OTU_list: List, output_file: Path) -> None:
     :param OTU_list: (list) A list of OTU sequences
     :param output_file: (Path) Path to the output file
     """
-    pass
+    with open(output_file, "w") as file:
+        for index, (sequence, count) in enumerate(OTU_list, start=1):
+            file.write(f">OTU_{index} occurrence:{count}\n")
+            file.write(f"{textwrap.fill(sequence, width=80)}\n")
 
 
 #==============================================================
