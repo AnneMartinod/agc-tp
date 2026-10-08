@@ -93,7 +93,6 @@ def read_fasta(amplicon_file: Path, minseqlen: int) -> Iterator[str]:
                 sequence = ""
             else:
                 sequence += line
-        # Derniere sequence du fichier
         if len(sequence) >= minseqlen:
             yield sequence
     pass
@@ -108,7 +107,6 @@ def dereplication_fulllength(amplicon_file: Path, minseqlen: int, mincount: int)
     :return: A generator object that provides a (list)[sequences, count] of sequence with a count >= mincount and a length >= minseqlen.
     """
     counts = Counter(read_fasta(amplicon_file, minseqlen))
-    # most_common renvoie les sequences par ordre decroissant d'occurrence
     for sequence, count in counts.most_common():
         if count >= mincount:
             yield [sequence, count]
@@ -136,6 +134,19 @@ def abundance_greedy_clustering(amplicon_file: Path, minseqlen: int, mincount: i
     :param kmer_size: (int) A fournir mais non utilise cette annee
     :return: (list) A list of all the [OTU (str), count (int)] .
     """
+    matrix = str(Path(__file__).parent / "MATCH")
+    otu_list = []
+    for sequence, count in dereplication_fulllength(amplicon_file, minseqlen, mincount):
+        is_otu = True
+        for otu_seq, _ in otu_list:
+            alignment = nw.global_align(sequence, otu_seq, gap_open=-1, gap_extend=-1,
+                                        matrix=matrix)
+            if get_identity(alignment) > 97:
+                is_otu = False
+                break
+        if is_otu:
+            otu_list.append([sequence, count])
+    return otu_list
     pass
 
 
